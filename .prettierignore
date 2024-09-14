@@ -1,0 +1,27 @@
+# Ignore artifacts:
+build
+coverage
+
+# Ignore node modules
+node_modules/
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+.tmp/
+.cache/
+
+# Ignore static build and deployment artifacts
+dist/
+public/
+
+# Ignore editor-specific configurations
+.vscode/
+.idea/
+
+# Optionally ignore configuration files
+webpack.common.js
+webpack.dev.js
+webpack.prod.js
+.eslintrc.js
