@@ -18,40 +18,34 @@ const weatherChanges = document.querySelector(".weather_changes");
 const findWeatherButton = document.querySelector("button");
 const generalWeatherIcon = document.querySelector(".general_weather > img");
 
-// function convertKelvinToCelsius(temp) {
-//   return `${Math.round(temp - 273.15)}°C`;
-// }
-
 async function getWeatherData() {
   const cityName = document.querySelector("header > input").value.trim();
-  const cachedWeatherData = localStorage.getItem(cityName);
+  const errorMessage = document.getElementById("error-message");
 
-  if (cachedWeatherData) {
-    console.log("Using cached data");
-    return JSON.parse(cachedWeatherData);
-  }
   try {
+    if (!cityName) {
+      throw new Error("Please enter a city name.");
+    }
     const response = await fetch(
       `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&cnt=8&units=metric&appid=adf0aaf36e0aa6b366d700257417e54f`,
     );
+    if (response.status === 404) {
+      throw new Error(
+        "City not found! Please insert a valid city name or check the spelling.",
+      );
+    }
     const json = await response.json();
-    localStorage.setItem(cityName, JSON.stringify(json));
-    // console.log(json);
+    if (json.cod === "404") {
+      throw new Error("City not found");
+    }
+
+    errorMessage.style.display = "none";
     return json;
   } catch (error) {
-    console.log(error);
+    errorMessage.textContent = `Error: ${error.message}`;
+    errorMessage.style.display = "block";
   }
 }
-
-const weatherData = JSON.parse(localStorage.getItem("london"));
-console.log(weatherData);
-
-const averageId =
-  weatherData.list.reduce((accumulator, item) => {
-    return (accumulator += item.weather[0].id);
-  }, 0) / weatherData.list.length;
-generalWeatherIcon.src = selectIcon(averageId);
-selectFigCaption(Math.round(averageId));
 
 function selectIcon(id) {
   if (id < 300) {
@@ -99,44 +93,17 @@ function selectFigCaption(id) {
   }
 }
 
-(function printWeatherTimeIntervals() {
-  weatherData.list.forEach((item) => {
-    const article = document.createElement("article");
-    const span1 = document.createElement("span");
-    const date = new Date(item.dt_txt);
-    const hours = date.getHours();
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    span1.textContent = `${hours}:${minutes}`;
-    const img = document.createElement("img");
-    img.src = selectIcon(item.weather[0].id);
-    const span2 = document.createElement("span");
-    span2.textContent = Math.round(item.main.temp) + "°C";
-    article.append(span1, img, span2);
-    weatherChanges.appendChild(article);
-  });
-})();
-
-function calculateAverage(param) {
+function calculateAverage(data, param) {
   return Math.round(
-    weatherData.list.reduce((accumulator, item) => {
+    data.list.reduce((accumulator, item) => {
       return (accumulator += item.main[param]);
-    }, 0) / weatherData.list.length,
+    }, 0) / data.list.length,
   );
 }
-
-humidity.textContent = calculateAverage("humidity") + "%";
-
-pressure.textContent = calculateAverage("pressure").toFixed(2);
-
-minTemp.textContent = calculateAverage("temp_min") + "°";
-
-maxTemp.textContent = calculateAverage("temp_max") + "°C";
 
 findWeatherButton.addEventListener("click", () => {
   getWeatherData()
     .then((weatherData) => {
-      console.log(weatherData);
-
       const averageId =
         weatherData.list.reduce((accumulator, item) => {
           return (accumulator += item.weather[0].id);
@@ -145,10 +112,10 @@ findWeatherButton.addEventListener("click", () => {
 
       selectFigCaption(Math.round(averageId));
 
-      humidity.textContent = calculateAverage("humidity") + "%";
-      pressure.textContent = calculateAverage("pressure").toFixed(2);
-      minTemp.textContent = calculateAverage("temp_min") + "°";
-      maxTemp.textContent = calculateAverage("temp_max") + "°C";
+      humidity.textContent = calculateAverage(weatherData, "humidity") + "%";
+      pressure.textContent = calculateAverage(weatherData, "pressure");
+      minTemp.textContent = calculateAverage(weatherData, "temp_min") + "°";
+      maxTemp.textContent = calculateAverage(weatherData, "temp_max") + "°C";
 
       weatherData.list.forEach((item) => {
         const article = document.createElement("article");
@@ -161,10 +128,10 @@ findWeatherButton.addEventListener("click", () => {
         img.src = selectIcon(item.weather[0].id);
         const span2 = document.createElement("span");
         span2.textContent = Math.round(item.main.temp) + "°C";
-        console.log(span2);
         article.append(span1, img, span2);
         weatherChanges.appendChild(article);
       });
     })
     .catch((error) => console.log(error));
+  document.querySelector(".app__main").style.display = "flex";
 });
