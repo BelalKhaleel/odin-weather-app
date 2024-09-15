@@ -66,6 +66,10 @@ button {
   align-items: center;
 }
 
+.general_weather > img {
+  width: 14em;
+}
+
 p {
   padding: 10px;
   font-family: Raleway;
