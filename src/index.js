@@ -1,6 +1,6 @@
 import "./style.css";
+import { isWithinInterval } from "date-fns";
 import clearIcon from "./weather-icons/clear.svg";
-import cloudyIcon from "./weather-icons/cloudy.svg";
 import drizzleIcon from "./weather-icons/drizzle.svg";
 import fogIcon from "./weather-icons/fog.svg";
 import mostlyCloudy from "./weather-icons/mostlycloudy.svg";
@@ -10,16 +10,10 @@ import snowIcon from "./weather-icons/snow.svg";
 import stormIcon from "./weather-icons/storm.svg";
 import unknownIcon from "./weather-icons/unknown.svg";
 
-const minTemp = document.getElementById("min-temp");
-const maxTemp = document.getElementById("max-temp");
-const humidity = document.getElementById("humidity");
-const pressure = document.getElementById("pressure");
-const weatherChanges = document.querySelector(".weather_changes");
 const findWeatherButton = document.querySelector("button");
-const generalWeatherIcon = document.querySelector(".general_weather > img");
 
 async function getWeatherData() {
-  const cityName = document.querySelector("header > input").value.trim();
+  const cityName = document.querySelector("input").value.trim();
   const errorMessage = document.getElementById("error-message");
 
   try {
@@ -69,30 +63,6 @@ function selectIcon(id) {
   }
 }
 
-function selectFigCaption(id) {
-  const figCaption = document.querySelector("figcaption");
-
-  if (id < 300) {
-    figCaption.textContent = "Thunderstorms";
-  } else if (id >= 300 && id <= 499) {
-    figCaption.textContent = "Light rain or drizzle";
-  } else if (id >= 500 && id <= 599) {
-    figCaption.textContent = "Rainy weather";
-  } else if (id >= 600 && id <= 699) {
-    figCaption.textContent = "Snowy conditions";
-  } else if (id >= 700 && id <= 799) {
-    figCaption.textContent = "Foggy weather";
-  } else if (id === 800) {
-    figCaption.textContent = "Clear Sky";
-  } else if (id === 801) {
-    figCaption.textContent = "Partly Cloudy";
-  } else if (id > 801 && id <= 805) {
-    figCaption.textContent = "Mostly Cloudy";
-  } else {
-    figCaption.textContent = "Unknown or Unexpected Weather";
-  }
-}
-
 function calculateAverage(data, param) {
   return Math.round(
     data.list.reduce((accumulator, item) => {
@@ -101,23 +71,58 @@ function calculateAverage(data, param) {
   );
 }
 
-findWeatherButton.addEventListener("click", () => {
+function displayData() {
+  const minTemp = document.getElementById("min-temp");
+  const maxTemp = document.getElementById("max-temp");
+  const humidity = document.getElementById("humidity");
+  const pressure = document.getElementById("pressure");
+  const weatherChanges = document.querySelector(".weather_changes");
+  const generalWeatherIcon = document.querySelector(".general_weather > img");
+  const figCaption = document.querySelector("figcaption");
+  const title = document.querySelector("header > p");
+
+  while (weatherChanges.firstChild) {
+    weatherChanges.removeChild(weatherChanges.firstChild);
+  }
+
   getWeatherData()
     .then((weatherData) => {
-      const averageId =
-        weatherData.list.reduce((accumulator, item) => {
-          return (accumulator += item.weather[0].id);
-        }, 0) / weatherData.list.length;
-      generalWeatherIcon.src = selectIcon(Math.round(averageId));
-
-      selectFigCaption(Math.round(averageId));
-
+      title.textContent = `Showing results for : "${document.querySelector("input").value.trim()}"`;
       humidity.textContent = calculateAverage(weatherData, "humidity") + "%";
       pressure.textContent = calculateAverage(weatherData, "pressure");
       minTemp.textContent = calculateAverage(weatherData, "temp_min") + "°";
       maxTemp.textContent = calculateAverage(weatherData, "temp_max") + "°C";
 
-      weatherData.list.forEach((item) => {
+      for (let i = 0; i < weatherData.list.length - 1; i++) {
+        if (
+          isWithinInterval(new Date(), {
+            start: new Date(weatherData.list[i].dt_txt),
+            end: new Date(weatherData.list[i + 1].dt_txt),
+          })
+        ) {
+          generalWeatherIcon.src = selectIcon(
+            weatherData.list[i].weather[0].id,
+          );
+          figCaption.textContent = weatherData.list[i].weather[0].description;
+        }
+      }
+
+      weatherData.list.forEach((item, index) => {
+        if (index < weatherData.list.length - 1) {
+          if (
+            isWithinInterval(new Date(), {
+              start: new Date(weatherData.list[index].dt_txt),
+              end: new Date(weatherData.list[index + 1].dt_txt),
+            })
+          ) {
+            generalWeatherIcon.src = selectIcon(
+              weatherData.list[index].weather[0].id,
+            );
+            figCaption.textContent =
+              weatherData.list[index].weather[0].description;
+          }
+        }
+
         const article = document.createElement("article");
         const span1 = document.createElement("span");
         const date = new Date(item.dt_txt);
@@ -134,4 +139,12 @@ findWeatherButton.addEventListener("click", () => {
     })
     .catch((error) => console.log(error));
   document.querySelector(".app__main").style.display = "flex";
+}
+
+findWeatherButton.addEventListener("click", displayData);
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    displayData();
+  }
 });

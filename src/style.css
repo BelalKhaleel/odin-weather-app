@@ -19,8 +19,20 @@
 .app__header {
   background-color: #759eda;
   display: flex;
+  justify-content: space-between;
   gap: 15px;
   padding: 20px;
+}
+
+.search-bar {
+  display: flex;
+  gap: 10px;
+}
+
+header > p {
+  font-size: 1.5rem;
+  margin-right: 4em;
+  color: white;
 }
 
 .app__main {
@@ -36,18 +48,13 @@ input {
   font-size: large;
   width: 400px;
   border: none;
-  border-bottom: 1px solid transparent;
+  outline: none;
+  border-bottom: 1px solid #5879c7;
 }
 
 input::placeholder {
   color: white;
   font-family: Raleway;
-}
-
-input:focus {
-  border: none;
-  outline: none;
-  border-bottom: 1px solid #5879c7;
 }
 
 button {
@@ -67,7 +74,7 @@ button {
 }
 
 .general_weather > img {
-  width: 14em;
+  width: 13em;
 }
 
 p {
