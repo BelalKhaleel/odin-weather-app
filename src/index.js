@@ -89,9 +89,15 @@ function displayData() {
     .then((weatherData) => {
       title.textContent = `Showing results for : "${document.querySelector("input").value.trim()}"`;
       humidity.textContent = calculateAverage(weatherData, "humidity") + "%";
-      pressure.textContent = calculateAverage(weatherData, "pressure");
-      minTemp.textContent = calculateAverage(weatherData, "temp_min") + "°";
-      maxTemp.textContent = calculateAverage(weatherData, "temp_max") + "°C";
+      pressure.textContent = calculateAverage(weatherData, "pressure") + " hPa";
+      minTemp.textContent =
+        Math.round(
+          Math.min(...weatherData.list.map((item) => item.main.temp_min)),
+        ) + "°";
+      maxTemp.textContent =
+        Math.round(
+          Math.max(...weatherData.list.map((item) => item.main.temp_max)),
+        ) + "°C";
 
       for (let i = 0; i < weatherData.list.length - 1; i++) {
         if (
