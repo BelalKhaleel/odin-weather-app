@@ -1,5 +1,5 @@
 import "./style.css";
-import { isWithinInterval } from "date-fns";
+import { closestTo } from "date-fns";
 import clearIcon from "./weather-icons/clear.svg";
 import drizzleIcon from "./weather-icons/drizzle.svg";
 import fogIcon from "./weather-icons/fog.svg";
@@ -12,16 +12,13 @@ import unknownIcon from "./weather-icons/unknown.svg";
 
 const findWeatherButton = document.querySelector("button");
 
-async function getWeatherData() {
-  const cityName = document.querySelector("input").value.trim();
-  const errorMessage = document.getElementById("error-message");
-
+async function getWeatherData(location) {
   try {
-    if (!cityName) {
+    if (!location) {
       throw new Error("Please enter a city name.");
     }
     const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&cnt=8&units=metric&appid=adf0aaf36e0aa6b366d700257417e54f`,
+      `https://api.openweathermap.org/data/2.5/forecast?q=${location}&cnt=8&units=metric&appid=adf0aaf36e0aa6b366d700257417e54f`,
     );
     if (response.status === 404) {
       throw new Error(
@@ -29,15 +26,9 @@ async function getWeatherData() {
       );
     }
     const json = await response.json();
-    if (json.cod === "404") {
-      throw new Error("City not found");
-    }
-
-    errorMessage.style.display = "none";
     return json;
   } catch (error) {
-    errorMessage.textContent = `Error: ${error.message}`;
-    errorMessage.style.display = "block";
+    return error;
   }
 }
 
@@ -71,82 +62,65 @@ function calculateAverage(data, param) {
   );
 }
 
-function displayData() {
-  const minTemp = document.getElementById("min-temp");
-  const maxTemp = document.getElementById("max-temp");
-  const humidity = document.getElementById("humidity");
-  const pressure = document.getElementById("pressure");
+async function displayData() {
+  const location = document.querySelector("input").value.trim();
+  const minTemp = document.querySelector(".min-temp");
+  const maxTemp = document.querySelector(".max-temp");
+  const humidity = document.querySelector(".humidity");
+  const pressure = document.querySelector(".pressure");
   const weatherChanges = document.querySelector(".weather_changes");
   const generalWeatherIcon = document.querySelector(
     ".general_weather > figure > img",
   );
   const figCaption = document.querySelector("figcaption");
   const title = document.querySelector("header > p");
+  const errorMessage = document.querySelector(".error-message");
 
   while (weatherChanges.firstChild) {
     weatherChanges.removeChild(weatherChanges.firstChild);
   }
 
-  getWeatherData()
-    .then((weatherData) => {
-      title.textContent = `Showing results for : "${document.querySelector("input").value.trim()}"`;
-      humidity.textContent = calculateAverage(weatherData, "humidity") + "%";
-      pressure.textContent = calculateAverage(weatherData, "pressure") + " hPa";
-      minTemp.textContent =
-        Math.round(
-          Math.min(...weatherData.list.map((item) => item.main.temp_min)),
-        ) + "°";
-      maxTemp.textContent =
-        Math.round(
-          Math.max(...weatherData.list.map((item) => item.main.temp_max)),
-        ) + "°C";
+  const result = await getWeatherData(location);
 
-      for (let i = 0; i < weatherData.list.length - 1; i++) {
-        if (
-          isWithinInterval(new Date(), {
-            start: new Date(weatherData.list[i].dt_txt),
-            end: new Date(weatherData.list[i + 1].dt_txt),
-          })
-        ) {
-          generalWeatherIcon.src = selectIcon(
-            weatherData.list[i].weather[0].id,
-          );
-          figCaption.textContent = weatherData.list[i].weather[0].description;
-        }
-      }
+  if (result instanceof Error) {
+    errorMessage.textContent = `Error: ${result.message}`;
+    errorMessage.style.display = "block";
+    return;
+  }
+  console.log(result);
+  errorMessage.style.display = "none";
 
-      weatherData.list.forEach((item, index) => {
-        if (index < weatherData.list.length - 1) {
-          if (
-            isWithinInterval(new Date(), {
-              start: new Date(weatherData.list[index].dt_txt),
-              end: new Date(weatherData.list[index + 1].dt_txt),
-            })
-          ) {
-            generalWeatherIcon.src = selectIcon(
-              weatherData.list[index].weather[0].id,
-            );
-            figCaption.textContent =
-              weatherData.list[index].weather[0].description;
-          }
-        }
+  title.textContent = `Showing results for : "${location}"`;
+  humidity.textContent = `${calculateAverage(result, "humidity")}%`;
+  pressure.textContent = `${calculateAverage(result, "pressure")}hPa`;
+  minTemp.textContent =
+    Math.round(Math.min(...result.list.map((item) => item.main.temp_min))) +
+    "°";
+  maxTemp.textContent =
+    Math.round(Math.max(...result.list.map((item) => item.main.temp_max))) +
+    "°C";
 
-        const article = document.createElement("article");
-        const span1 = document.createElement("span");
-        const date = new Date(item.dt_txt);
-        const hours = date.getHours();
-        const minutes = date.getMinutes().toString().padStart(2, "0");
-        span1.textContent = `${hours}:${minutes}`;
-        const img = document.createElement("img");
-        img.src = selectIcon(item.weather[0].id);
-        const span2 = document.createElement("span");
-        span2.textContent = Math.round(item.main.temp) + "°C";
-        article.append(span1, img, span2);
-        weatherChanges.appendChild(article);
-      });
-    })
-    .catch((error) => console.log(error));
-  document.querySelector(".app__main").style.display = "flex";
+  const dates = result.list.map((item) => new Date(item.dt_txt));
+  const closest = closestTo(new Date(), dates);
+  const index = dates.findIndex((date) => date.getTime() === closest.getTime());
+  const currentWeather = result.list[index];
+  generalWeatherIcon.src = selectIcon(currentWeather.weather[0].id);
+  figCaption.textContent = currentWeather.weather[0].description;
+
+  result.list.forEach((item) => {
+    const article = document.createElement("article");
+    const span1 = document.createElement("span");
+    const date = new Date(item.dt_txt);
+    const hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    span1.textContent = `${hours}:${minutes}`;
+    const img = document.createElement("img");
+    img.src = selectIcon(item.weather[0].id);
+    const span2 = document.createElement("span");
+    span2.textContent = Math.round(item.main.temp) + "°C";
+    article.append(span1, img, span2);
+    weatherChanges.appendChild(article);
+  });
 }
 
 findWeatherButton.addEventListener("click", displayData);
