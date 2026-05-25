@@ -1,14 +1,26 @@
 @import url(https://fonts.googleapis.com/css?family=Raleway&display=swap);
 
-*, *::before, *::after {
+html {
+  box-sizing: border-box;
+}
+
+*, 
+*::before, 
+*::after {
   padding: 0;
   margin: 0;
-  box-sizing: border-box;
+  box-sizing: inherit;
+}
+
+:root {
+  --primary-color: #9ccef4;
+  --secondary-color: #759eda;
+  --accent-color: #5879c7;
 }
 
 .app {
   min-height: 100vh;
-  background-color: #9ccef4;
+  background-color: var(--primary-color);
   transition: background-color 1s ease-in;
   font-family: 'Raleway', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -17,39 +29,29 @@
 
 /*  Search bar */
 .app__header {
-  background-color: #759eda;
+  background-color: var(--secondary-color);
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  align-items: center;
   gap: 15px;
-  padding: 20px;
+  padding: 2rem 5rem;
 }
 
 .search-bar {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
-}
-
-header > p {
-  font-size: 1.5rem;
-  margin-right: 4em;
-  color: white;
-}
-
-.app__main {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
 }
 
 input {
   color: white;
-  background-color: #759eda;
+  background-color: var(--secondary-color);
   font-size: large;
   width: 400px;
   border: none;
   outline: none;
-  border-bottom: 1px solid #5879c7;
+  border-bottom: 1px solid var(--accent-color);
 }
 
 input::placeholder {
@@ -57,28 +59,49 @@ input::placeholder {
   font-family: Raleway;
 }
 
+header > p {
+  font-size: 1.5rem;
+  color: white;
+}
+
 button {
   padding: 15px;
   color: #0c1055;
-  background-color: #5879c7;
+  background-color: var(--accent-color);
   border: none;
   cursor: pointer;
 }
 
+.app__main {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+}
+
 /* Current weather */
 .general_weather {
-  background-color: #9ccef4;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 1.5rem;
 }
 
-.general_weather > img {
-  width: 13em;
+figcaption {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.weather_changes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6rem;
 }
 
 p {
-  padding: 10px;
   font-family: Raleway;
 }
 
@@ -90,57 +113,13 @@ article {
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
-  padding: 0 30px;
-}
-
-.current_weather img {
-  width: 300px;
-  height: 200px;
-}
-
-.current_weather {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-figcaption {
-  color: white;
-  font-size: 20px;
-  font-weight: bold;
-  margin: 20px 0 20px 0;
+  text-align: center;
 }
 
 .temperature {
-  font-size: 20px;
-}
-
-.weather_changes {
-  display: flex;
-  justify-content: center;
-  gap: 3em;
-  margin-top: 50px;
-  width: 100%;
-}
-
-article span {
-  display: flex;
-  justify-content: center;
+  font-size: 1.3rem;
 }
 
 #error-message {
   display: none;
-}
-
-@media screen and (max-width: 992px) {
-  .weather_changes {
-    flex-wrap: wrap;
-    row-gap: 30px;
-  }
-
-  button {
-    margin: 10px;
-  }
-
 }

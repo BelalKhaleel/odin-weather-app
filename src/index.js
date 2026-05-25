@@ -77,7 +77,9 @@ function displayData() {
   const humidity = document.getElementById("humidity");
   const pressure = document.getElementById("pressure");
   const weatherChanges = document.querySelector(".weather_changes");
-  const generalWeatherIcon = document.querySelector(".general_weather > img");
+  const generalWeatherIcon = document.querySelector(
+    ".general_weather > figure > img",
+  );
   const figCaption = document.querySelector("figcaption");
   const title = document.querySelector("header > p");
 
