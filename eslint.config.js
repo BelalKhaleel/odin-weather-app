@@ -5,6 +5,9 @@ export default [
   js.configs.recommended,
 
   {
+    ignores: ["build", "coverage", "node_modules", "dist", "public", ".git/"],
+  },
+  {
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
@@ -14,7 +17,6 @@ export default [
         myCustomGlobal: "readonly",
       },
     },
-    ignores: ["build", "coverage", "node_modules", "dist", "public", ".git/"],
     rules: {
       "no-unused-vars": "warn",
       "no-undef": "warn",
