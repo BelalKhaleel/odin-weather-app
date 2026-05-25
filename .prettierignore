@@ -19,9 +19,3 @@ public/
 # Ignore editor-specific configurations
 .vscode/
 .idea/
-
-# Optionally ignore configuration files
-webpack.common.js
-webpack.dev.js
-webpack.prod.js
-.eslintrc.js

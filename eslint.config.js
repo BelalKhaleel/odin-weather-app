@@ -14,7 +14,6 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.node,
-        myCustomGlobal: "readonly",
       },
     },
     rules: {
